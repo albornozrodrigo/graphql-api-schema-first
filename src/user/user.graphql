@@ -1,0 +1,39 @@
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  # posts(pagination: PaginationInput): [Post!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input UpdateUserInput {
+  name: String!
+  email: String!
+}
+
+input UpdateUserPasswordInput {
+  password: String!
+}
+
+type Query {
+  allUsers(pagination: PaginationInput): [User]!
+  user(id: Int!): User
+  currentUser: User
+}
+
+type Mutation {
+  createUser(createUserInput: CreateUserInput!): User!
+  updateUser(id: Int!, updateUserInput: UpdateUserInput!): User!
+  updateUserPassword(
+    id: Int!
+    updateUserPasswordInput: UpdateUserPasswordInput!
+  ): Boolean!
+  removeUser(id: Int!): Boolean!
+}
