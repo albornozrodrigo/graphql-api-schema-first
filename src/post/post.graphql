@@ -2,8 +2,7 @@ type Post {
   id: ID!
   title: String!
   content: String!
-  authorId: Int!
-  # author: User!
+  author: User!
   comments(pagination: PaginationInput): [Comment!]!
   createdAt: String!
   updatedAt: String!
@@ -12,7 +11,6 @@ type Post {
 input CreatePostInput {
   title: String!
   content: String!
-  authorId: Int!
 }
 
 input UpdatePostInput {
@@ -22,11 +20,12 @@ input UpdatePostInput {
 
 type Query {
   allPosts(pagination: PaginationInput): [Post]!
+  allPostsByAuthor(pagination: PaginationInput): [Post]!
   post(id: Int!): Post
 }
 
 type Mutation {
   createPost(createPostInput: CreatePostInput!): Post!
-  updatePost(id: Int!, updatePostInput: UpdatePostInput!): Post!
-  removePost(id: Int!): Boolean!
+  updatePost(id: ID!, updatePostInput: UpdatePostInput!): Post!
+  removePost(id: ID!): Boolean!
 }

@@ -8,14 +8,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export interface CreateCommentInput {
-    comment: string;
-    userId: number;
-    postId: number;
+export interface AuthInput {
+    email: string;
+    password: string;
 }
 
-export interface UpdateCommentInput {
+export interface CommentInput {
     comment: string;
+    postId: string;
 }
 
 export interface PaginationInput {
@@ -26,7 +26,6 @@ export interface PaginationInput {
 export interface CreatePostInput {
     title: string;
     content: string;
-    authorId: number;
 }
 
 export interface UpdatePostInput {
@@ -49,44 +48,50 @@ export interface UpdateUserPasswordInput {
     password: string;
 }
 
+export interface AuthResponse {
+    access_token: string;
+}
+
+export interface IMutation {
+    login(authInput: AuthInput): AuthResponse | Promise<AuthResponse>;
+    createComment(createCommentInput: CommentInput): Comment | Promise<Comment>;
+    updateComment(id: string, updateCommentInput: CommentInput): Comment | Promise<Comment>;
+    removeComment(id: string): boolean | Promise<boolean>;
+    createPost(createPostInput: CreatePostInput): Post | Promise<Post>;
+    updatePost(id: string, updatePostInput: UpdatePostInput): Post | Promise<Post>;
+    removePost(id: string): boolean | Promise<boolean>;
+    createUser(createUserInput: CreateUserInput): User | Promise<User>;
+    updateUser(updateUserInput: UpdateUserInput): User | Promise<User>;
+    updateUserPassword(updateUserPasswordInput: UpdateUserPasswordInput): boolean | Promise<boolean>;
+    removeUser(): boolean | Promise<boolean>;
+}
+
 export interface Comment {
     id: string;
     comment: string;
-    userId: number;
-    postId: number;
+    user: User;
+    post: Post;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface IQuery {
     allComments(pagination?: Nullable<PaginationInput>): Nullable<Comment>[] | Promise<Nullable<Comment>[]>;
-    comment(id: number): Nullable<Comment> | Promise<Nullable<Comment>>;
-    commentsByPost(postId: number, pagination?: Nullable<PaginationInput>): Nullable<Comment>[] | Promise<Nullable<Comment>[]>;
+    comment(id: string): Nullable<Comment> | Promise<Nullable<Comment>>;
+    commentsByPostId(postId: string, pagination?: Nullable<PaginationInput>): Nullable<Comment>[] | Promise<Nullable<Comment>[]>;
     allPosts(pagination?: Nullable<PaginationInput>): Nullable<Post>[] | Promise<Nullable<Post>[]>;
+    allPostsByAuthor(pagination?: Nullable<PaginationInput>): Nullable<Post>[] | Promise<Nullable<Post>[]>;
     post(id: number): Nullable<Post> | Promise<Nullable<Post>>;
     allUsers(pagination?: Nullable<PaginationInput>): Nullable<User>[] | Promise<Nullable<User>[]>;
     user(id: number): Nullable<User> | Promise<Nullable<User>>;
-    currentUser(): Nullable<User> | Promise<Nullable<User>>;
-}
-
-export interface IMutation {
-    createComment(createCommentInput: CreateCommentInput): Comment | Promise<Comment>;
-    updateComment(id: number, updateCommentInput: UpdateCommentInput): Comment | Promise<Comment>;
-    removeComment(id: number): boolean | Promise<boolean>;
-    createPost(createPostInput: CreatePostInput): Post | Promise<Post>;
-    updatePost(id: number, updatePostInput: UpdatePostInput): Post | Promise<Post>;
-    removePost(id: number): boolean | Promise<boolean>;
-    createUser(createUserInput: CreateUserInput): User | Promise<User>;
-    updateUser(id: number, updateUserInput: UpdateUserInput): User | Promise<User>;
-    updateUserPassword(id: number, updateUserPasswordInput: UpdateUserPasswordInput): boolean | Promise<boolean>;
-    removeUser(id: number): boolean | Promise<boolean>;
+    me(): User | Promise<User>;
 }
 
 export interface Post {
     id: string;
     title: string;
     content: string;
-    authorId: number;
+    author: User;
     comments?: Comment[];
     createdAt: string;
     updatedAt: string;
@@ -96,6 +101,7 @@ export interface User {
     id: string;
     name: string;
     email: string;
+    posts?: Post[];
     createdAt: string;
     updatedAt: string;
 }

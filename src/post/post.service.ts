@@ -10,41 +10,84 @@ import { Post, PostAttributes } from './entities/post.entity';
 export class PostService {
   constructor(@InjectModel(Post) private postModel: typeof Post) {}
 
-  async create(createPostInput: CreatePostInput): Promise<Post> {
-    return await this.postModel.create(createPostInput);
+  async create(createPostInput: CreatePostInput): Promise<PostAttributes> {
+    const hasPost = await this.postModel.count({
+      where: {
+        title: createPostInput.title,
+      },
+    });
+
+    if (hasPost > 0) {
+      throw new Error('Title already used');
+    }
+
+    const newPost = await this.postModel.create(createPostInput);
+    return newPost.get({ plain: true });
   }
 
-  async findAllPaginated(
-    pagination: PaginationInput,
-  ): Promise<PostAttributes[]> {
+  async findAll(pagination: PaginationInput): Promise<PostAttributes[]> {
     const paginationData = buildPagination(pagination);
     const posts = await this.postModel.findAll(paginationData);
     return posts.map((post: Post) => post.get({ plain: true }));
   }
 
-  async findAll(): Promise<PostAttributes[]> {
-    const posts = await this.postModel.findAll();
+  async findAllByAuthorId(
+    authorId: number,
+    pagination: PaginationInput,
+  ): Promise<PostAttributes[]> {
+    const paginationData = buildPagination(pagination);
+    const posts = await this.postModel.findAll({
+      ...paginationData,
+      where: { authorId },
+    });
+    return posts.map((post: Post) => post.get({ plain: true }));
+  }
+
+  async findAllByAuthorIds(authorIds: number[]) {
+    const posts = await this.postModel.findAll({
+      where: { authorId: authorIds },
+      order: [['createdAt', 'DESC']],
+    });
     return posts.map((post: Post) => post.get({ plain: true }));
   }
 
   async findOne(id: number) {
-    return await this.postModel.findByPk(id);
+    const post = await this.postModel.findByPk(id);
+    if (!post) {
+      throw new Error('Post not found');
+    }
+    return post.get({ plain: true });
   }
 
-  async update(id: number, updatePostInput: UpdatePostInput) {
+  async update(postId: number, updatePostInput: UpdatePostInput) {
+    const post = await this.findOne(postId);
+
+    if (post.authorId !== updatePostInput.authorId) {
+      throw new Error('You are not authorized to update this post');
+    }
+
     const res = await this.postModel.update(updatePostInput, {
-      where: { id },
+      where: { id: postId },
     });
 
     if (res[0] === 0) {
       throw new Error('Post not found');
     }
 
-    return this.postModel.findByPk(id);
+    return this.findOne(postId);
   }
 
-  async remove(id: number) {
-    const res = await this.postModel.destroy({ where: { id } });
+  async remove(postId: number, userId: number) {
+    const post = await this.findOne(postId);
+
+    if (post.authorId !== userId) {
+      throw new Error('You are not authorized to delete this post');
+    }
+
+    const res = await this.postModel.destroy({
+      where: { id: postId, authorId: userId },
+    });
+
     return res === 1;
   }
 }

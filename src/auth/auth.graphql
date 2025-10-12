@@ -1,0 +1,12 @@
+type AuthResponse {
+  access_token: String!
+}
+
+input AuthInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  login(authInput: AuthInput!): AuthResponse!
+}

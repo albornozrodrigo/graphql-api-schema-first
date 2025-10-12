@@ -1,12 +1,4 @@
-import * as bcrypt from 'bcrypt';
-import {
-  BeforeCreate,
-  Column,
-  DataType,
-  HasMany,
-  Model,
-  Table,
-} from 'sequelize-typescript';
+import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
 import { Post } from '../../post/entities/post.entity';
 
 export interface UserAttributes {
@@ -16,9 +8,6 @@ export interface UserAttributes {
   password: string;
 }
 
-// @DefaultScope(() => ({
-//   attributes: { exclude: ['password'] },
-// }))
 @Table
 export class User extends Model<UserAttributes, Omit<UserAttributes, 'id'>> {
   @Column({
@@ -51,11 +40,4 @@ export class User extends Model<UserAttributes, Omit<UserAttributes, 'id'>> {
 
   @HasMany(() => Post)
   posts: Post[];
-
-  @BeforeCreate
-  static async hashPassword(instance: User) {
-    const user = instance.get({ plain: true });
-    const salt = await bcrypt.genSalt(10);
-    instance.password = await bcrypt.hash(user.password, salt);
-  }
 }

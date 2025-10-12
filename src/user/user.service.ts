@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import * as bcrypt from 'bcrypt';
 import { buildPagination } from 'src/app.utils';
 import { PaginationInput } from '../common/dto/pagination.input';
 import { CreateUserInput } from './dto/create-user.input';
@@ -11,8 +12,29 @@ import { User, UserAttributes } from './entities/user.entity';
 export class UserService {
   constructor(@InjectModel(User) private userModel: typeof User) {}
 
-  async create(createUserInput: CreateUserInput): Promise<User> {
-    return await this.userModel.create(createUserInput);
+  async handleHashPassword(password: string) {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  }
+
+  async create(createUserInput: CreateUserInput): Promise<UserAttributes> {
+    const hasUser = await this.userModel.count({
+      where: {
+        email: createUserInput.email,
+      },
+    });
+
+    if (hasUser > 0) {
+      throw new Error('User already exists');
+    }
+
+    createUserInput.password = await this.handleHashPassword(
+      createUserInput.password,
+    );
+
+    const newUser = await this.userModel.create(createUserInput);
+
+    return newUser.get({ plain: true });
   }
 
   async findAll(pagination: PaginationInput): Promise<UserAttributes[]> {
@@ -21,8 +43,28 @@ export class UserService {
     return users.map((user: User) => user.get({ plain: true }));
   }
 
-  async findOne(id: number) {
-    return await this.userModel.findByPk(id);
+  async findAllByIds(authorIds: number[]): Promise<UserAttributes[]> {
+    const users = await this.userModel.findAll({
+      where: { id: authorIds },
+      order: [['createdAt', 'DESC']],
+    });
+    return users.map((user: User) => user.get({ plain: true }));
+  }
+
+  async findOne(id: number): Promise<UserAttributes> {
+    const user = await this.userModel.findByPk(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user.get({ plain: true });
+  }
+
+  async findOneByEmail(email: string): Promise<UserAttributes> {
+    const user = await this.userModel.findOne({ where: { email } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user.get({ plain: true });
   }
 
   async update(id: number, updateUserInput: UpdateUserInput) {
@@ -34,7 +76,7 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    return this.userModel.findByPk(id);
+    return this.findOne(id);
   }
 
   async updatePassword(
@@ -45,6 +87,10 @@ export class UserService {
       where: { id },
     });
 
+    updateUserPasswordInput.password = await this.handleHashPassword(
+      updateUserPasswordInput.password,
+    );
+
     return res[0] === 1;
   }
 
@@ -52,4 +98,15 @@ export class UserService {
     const res = await this.userModel.destroy({ where: { id } });
     return res === 1;
   }
+
+  // async resolvePosts(
+  //   userId: number,
+  //   pagination: PaginationInput,
+  //   loader: UserPostsLoader,
+  // ) {
+  //   const paginationData = buildPagination(pagination);
+  //   const posts = (await loader.postsByAuthorLoader.load(userId)) ?? [];
+
+  //   return posts.slice(paginationData.offset, paginationData.limit);
+  // }
 }
