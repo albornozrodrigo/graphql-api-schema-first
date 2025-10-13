@@ -1,60 +1,53 @@
 import { Injectable, Scope } from '@nestjs/common';
 import DataLoader from 'dataloader';
-import { CommentService } from 'src/comment/comment.service';
-import { CommentAttributes } from 'src/comment/entities/comment.entity';
-import { UserAttributes } from 'src/user/entities/user.entity';
-import { UserService } from 'src/user/user.service';
+import { PostAttributes } from './entities/post.entity';
+import { PostService } from './post.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostLoader {
-  constructor(
-    private readonly userService: UserService,
-    private readonly commentService: CommentService,
-  ) {}
+  constructor(private readonly postService: PostService) {}
 
-  // Criar o loader para comments por autor
-  readonly commentsByPost = new DataLoader<number, CommentAttributes[]>(
+  readonly findPostsByPostId = new DataLoader<number, PostAttributes>(
     async (postIds: readonly number[]) => {
-      // Buscar todos os comments de uma vez
-      const comments = await this.commentService.findAllByPostIds([...postIds]);
+      const posts = await this.postService.findAllByIds([...postIds]);
 
-      // Criar um mapa agrupando comments por postId
-      const commentsMap = new Map<number, CommentAttributes[]>();
+      const postsMap = new Map<number, PostAttributes>();
+      posts.forEach((post) => {
+        postsMap.set(post.id, post);
+      });
+
+      // IMPORTANTE: Retornar na mesma ordem e lançar erro se não encontrar
+      return postIds.map((id) => {
+        const post = postsMap.get(id);
+        if (!post) {
+          throw new Error(`Post with id ${id} not found`);
+        }
+        return post;
+      });
+    },
+  );
+
+  readonly findPostsByAuthorId = new DataLoader<number, PostAttributes[]>(
+    async (authorIds: readonly number[]) => {
+      // Buscar todos os posts de uma vez
+      const posts = await this.postService.findAllByAuthorIds([...authorIds]);
+
+      // Criar um mapa agrupando posts por authorId
+      const postsMap = new Map<number, PostAttributes[]>();
 
       // Inicializar com arrays vazios para cada userId
-      postIds.forEach((id) => commentsMap.set(id, []));
+      authorIds.forEach((id) => postsMap.set(id, []));
 
-      // Agrupar comments por postId
-      comments.forEach((comment) => {
-        const list = commentsMap.get(comment.postId);
+      // Agrupar posts por authorId
+      posts.forEach((post) => {
+        const list = postsMap.get(post.authorId);
         if (list) {
-          list.push(comment);
+          list.push(post);
         }
       });
 
       // Retornar na mesma ordem dos userIds
-      return postIds.map((id) => commentsMap.get(id) || []);
-    },
-  );
-
-  readonly authorByPost = new DataLoader<number, UserAttributes | undefined>(
-    async (authorIds: readonly number[]) => {
-      // Buscar todos os usuários de uma vez
-      const users = await this.userService.findAllByIds([...authorIds]);
-
-      // Criar um mapa agrupando usuários por id
-      const userMap = new Map<number, UserAttributes | undefined>();
-
-      // Inicializar com undefined para cada id
-      authorIds.forEach((id) => userMap.set(id, undefined));
-
-      // Mapear cada usuário pelo seu id
-      users.forEach((user) => {
-        userMap.set(user.id, user);
-      });
-
-      // Retornar na mesma ordem dos authorIds
-      return authorIds.map((id) => userMap.get(id));
+      return authorIds.map((id) => postsMap.get(id) || []);
     },
   );
 }

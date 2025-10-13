@@ -9,24 +9,22 @@ import {
 } from '@nestjs/graphql';
 import { buildPagination } from 'src/app.utils';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
-import { CommentService } from 'src/comment/comment.service';
+import { CommentLoader } from 'src/comment/comment.loader';
 import { PaginationInput } from 'src/common/dto/pagination.input';
 import { UserAttributes } from 'src/user/entities/user.entity';
 import { CurrentUser } from 'src/user/user.decorator';
-import { UserService } from 'src/user/user.service';
+import { UserLoader } from 'src/user/user.loader';
 import { CreatePostInput } from './dto/create-post.input';
 import { UpdatePostInput } from './dto/update-post.input';
 import { Post } from './entities/post.entity';
-import { PostLoader } from './post.loader';
 import { PostService } from './post.service';
 
 @Resolver('Post')
 export class PostResolver {
   constructor(
     private readonly postService: PostService,
-    private readonly userService: UserService,
-    private readonly commentService: CommentService,
-    private readonly postLoader: PostLoader,
+    private readonly userLoader: UserLoader,
+    private readonly commentLoader: CommentLoader,
   ) {}
 
   @Query(() => [Post], { name: 'allPosts' })
@@ -82,11 +80,8 @@ export class PostResolver {
   @ResolveField('author')
   async author(@Parent() post: Post) {
     if (!post) return null;
-    // return this.userService.findOne(post.authorId);
 
-    const allUsers = await this.postLoader.authorByPost.load(post.authorId);
-
-    return allUsers;
+    return await this.userLoader.findUsersByUserId.load(post.authorId);
   }
 
   @ResolveField('comments')
@@ -96,7 +91,9 @@ export class PostResolver {
   ) {
     if (!post) return [];
 
-    const allComments = await this.postLoader.commentsByPost.load(post.id);
+    const allComments = await this.commentLoader.findCommentsByPostId.load(
+      post.id,
+    );
 
     // Aplicar paginação se fornecida
     if (pagination) {

@@ -9,10 +9,10 @@ import {
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { PaginationInput } from 'src/common/dto/pagination.input';
-import { PostService } from 'src/post/post.service';
+import { PostLoader } from 'src/post/post.loader';
 import { UserAttributes } from 'src/user/entities/user.entity';
 import { CurrentUser } from 'src/user/user.decorator';
-import { UserService } from 'src/user/user.service';
+import { UserLoader } from 'src/user/user.loader';
 import { CommentService } from './comment.service';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
@@ -22,8 +22,8 @@ import { Comment } from './entities/comment.entity';
 export class CommentResolver {
   constructor(
     private readonly commentService: CommentService,
-    private readonly postService: PostService,
-    private readonly userService: UserService,
+    private readonly postLoader: PostLoader,
+    private readonly userLoader: UserLoader,
   ) {}
 
   @Query(() => [Comment], { name: 'allComments' })
@@ -78,12 +78,12 @@ export class CommentResolver {
   @ResolveField('user')
   user(@Parent() comment: Comment) {
     if (!comment) return null;
-    return this.userService.findOne(comment.userId);
+    return this.userLoader.findUsersByUserId.load(comment.userId);
   }
 
   @ResolveField('post')
   post(@Parent() comment: Comment) {
     if (!comment) return null;
-    return this.postService.findOne(comment.postId);
+    return this.postLoader.findPostsByPostId.load(comment.postId);
   }
 }

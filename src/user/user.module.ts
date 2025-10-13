@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Post } from 'src/post/entities/post.entity';
+import { PostLoader } from 'src/post/post.loader';
 import { PostModule } from 'src/post/post.module';
 import { PostService } from 'src/post/post.service';
 import { User } from './entities/user.entity';
@@ -10,6 +11,6 @@ import { UserService } from './user.service';
 
 @Module({
   imports: [PostModule, SequelizeModule.forFeature([User, Post])],
-  providers: [UserResolver, UserService, PostService, UserLoader],
+  providers: [UserResolver, UserService, UserLoader, PostService, PostLoader],
 })
 export class UserModule {}

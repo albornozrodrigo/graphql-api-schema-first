@@ -43,9 +43,9 @@ export class UserService {
     return users.map((user: User) => user.get({ plain: true }));
   }
 
-  async findAllByIds(authorIds: number[]): Promise<UserAttributes[]> {
+  async findAllByIds(ids: number[]): Promise<UserAttributes[]> {
     const users = await this.userModel.findAll({
-      where: { id: authorIds },
+      where: { id: ids },
       order: [['createdAt', 'DESC']],
     });
     return users.map((user: User) => user.get({ plain: true }));

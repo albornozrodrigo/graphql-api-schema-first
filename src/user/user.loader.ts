@@ -1,34 +1,31 @@
 import { Injectable, Scope } from '@nestjs/common';
 import DataLoader from 'dataloader';
-import { PostAttributes } from 'src/post/entities/post.entity';
-import { PostService } from 'src/post/post.service';
+import { UserAttributes } from './entities/user.entity';
+import { UserService } from './user.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class UserLoader {
-  constructor(private readonly postService: PostService) {}
+  constructor(private readonly userService: UserService) {}
 
-  // Criar o loader para posts por autor
-  readonly postsByAuthor = new DataLoader<number, PostAttributes[]>(
+  readonly findUsersByUserId = new DataLoader<number, UserAttributes>(
     async (userIds: readonly number[]) => {
-      // Buscar todos os posts de uma vez
-      const posts = await this.postService.findAllByAuthorIds([...userIds]);
+      // Buscar todos os usuários de uma vez
+      const users = await this.userService.findAllByIds([...userIds]);
 
-      // Criar um mapa agrupando posts por authorId
-      const postsMap = new Map<number, PostAttributes[]>();
-
-      // Inicializar com arrays vazios para cada userId
-      userIds.forEach((id) => postsMap.set(id, []));
-
-      // Agrupar posts por authorId
-      posts.forEach((post) => {
-        const list = postsMap.get(post.authorId);
-        if (list) {
-          list.push(post);
-        }
+      // Criar um mapa agrupando usuários por id
+      const userMap = new Map<number, UserAttributes>();
+      users.forEach((user) => {
+        userMap.set(user.id, user);
       });
 
-      // Retornar na mesma ordem dos userIds
-      return userIds.map((id) => postsMap.get(id) || []);
+      // IMPORTANTE: Retornar na mesma ordem e lançar erro se não encontrar
+      return userIds.map((id: number) => {
+        const user = userMap.get(id);
+        if (!user) {
+          throw new Error(`User with id ${id} not found`);
+        }
+        return user;
+      });
     },
   );
 }

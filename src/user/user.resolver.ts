@@ -9,22 +9,20 @@ import {
 } from '@nestjs/graphql';
 import { buildPagination } from 'src/app.utils';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
-import { PostService } from 'src/post/post.service';
+import { PostLoader } from 'src/post/post.loader';
 import { PaginationInput } from '../common/dto/pagination.input';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserPasswordInput } from './dto/update-user-password.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { User, UserAttributes } from './entities/user.entity';
 import { CurrentUser } from './user.decorator';
-import { UserLoader } from './user.loader';
 import { UserService } from './user.service';
 
 @Resolver('User')
 export class UserResolver {
   constructor(
     private readonly userService: UserService,
-    private readonly postService: PostService,
-    private readonly userLoader: UserLoader,
+    private readonly postLoader: PostLoader,
   ) {}
 
   @Mutation(() => User, { name: 'createUser' })
@@ -82,7 +80,7 @@ export class UserResolver {
     @Args('pagination') pagination: PaginationInput,
   ) {
     if (!user) return [];
-    const allPosts = await this.userLoader.postsByAuthor.load(user.id);
+    const allPosts = await this.postLoader.findPostsByAuthorId.load(user.id);
 
     if (pagination) {
       const { limit, offset } = buildPagination(pagination);

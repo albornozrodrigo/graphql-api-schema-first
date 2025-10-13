@@ -43,6 +43,14 @@ export class PostService {
     return posts.map((post: Post) => post.get({ plain: true }));
   }
 
+  async findAllByIds(ids: number[]): Promise<PostAttributes[]> {
+    const posts = await this.postModel.findAll({
+      where: { id: ids },
+      order: [['createdAt', 'DESC']],
+    });
+    return posts.map((post: Post) => post.get({ plain: true }));
+  }
+
   async findAllByAuthorIds(authorIds: number[]) {
     const posts = await this.postModel.findAll({
       where: { authorId: authorIds },
