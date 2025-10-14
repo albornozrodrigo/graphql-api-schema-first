@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcrypt';
-import { buildPagination } from 'src/app.utils';
+import { GraphQLResolveInfo } from 'graphql';
+import { Op } from 'sequelize';
+import { buildPagination, getAttributes } from 'src/app.utils';
 import { PaginationInput } from '../common/dto/pagination.input';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserPasswordInput } from './dto/update-user-password.input';
 import { UpdateUserInput } from './dto/update-user.input';
-import { User, UserAttributes } from './entities/user.entity';
+import { User, UserAttributes, userDataMap } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -37,21 +39,49 @@ export class UserService {
     return newUser.get({ plain: true });
   }
 
-  async findAll(pagination: PaginationInput): Promise<UserAttributes[]> {
+  async findAll(
+    pagination: PaginationInput,
+    info: GraphQLResolveInfo,
+  ): Promise<UserAttributes[]> {
+    const attributes = getAttributes(info, userDataMap);
     const paginationData = buildPagination(pagination);
-    const users = await this.userModel.findAll(paginationData);
+    const users = await this.userModel.findAll({
+      ...paginationData,
+      attributes: attributes,
+    });
     return users.map((user: User) => user.get({ plain: true }));
   }
 
-  async findAllByIds(ids: number[]): Promise<UserAttributes[]> {
+  async findAllByIds(
+    ids: number[],
+    info: GraphQLResolveInfo,
+  ): Promise<UserAttributes[]> {
+    const attributes = getAttributes(info, userDataMap);
     const users = await this.userModel.findAll({
-      where: { id: ids },
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+      attributes,
       order: [['createdAt', 'DESC']],
     });
     return users.map((user: User) => user.get({ plain: true }));
   }
 
-  async findOne(id: number): Promise<UserAttributes> {
+  async findOne(id: number, info: GraphQLResolveInfo): Promise<UserAttributes> {
+    const attributes = getAttributes(info, userDataMap);
+    const user = await this.userModel.findOne({
+      where: { id },
+      attributes,
+    });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user.get({ plain: true });
+  }
+
+  async findOneById(id: number): Promise<UserAttributes> {
     const user = await this.userModel.findByPk(id);
     if (!user) {
       throw new Error('User not found');
@@ -76,7 +106,7 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    return this.findOne(id);
+    return this.findOneById(id);
   }
 
   async updatePassword(
@@ -98,15 +128,4 @@ export class UserService {
     const res = await this.userModel.destroy({ where: { id } });
     return res === 1;
   }
-
-  // async resolvePosts(
-  //   userId: number,
-  //   pagination: PaginationInput,
-  //   loader: UserPostsLoader,
-  // ) {
-  //   const paginationData = buildPagination(pagination);
-  //   const posts = (await loader.postsByAuthorLoader.load(userId)) ?? [];
-
-  //   return posts.slice(paginationData.offset, paginationData.limit);
-  // }
 }

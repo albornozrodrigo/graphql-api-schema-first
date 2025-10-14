@@ -17,6 +17,14 @@ export interface PostAttributes {
   authorId: number;
 }
 
+export const postDataMap: Record<string, string> = {
+  id: 'id',
+  title: 'title',
+  content: 'content',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+};
+
 @Table
 export class Post extends Model<
   PostAttributes,

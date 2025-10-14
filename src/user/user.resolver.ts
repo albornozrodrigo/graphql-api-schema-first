@@ -1,12 +1,14 @@
 import { UseGuards } from '@nestjs/common';
 import {
   Args,
+  Info,
   Mutation,
   Parent,
   Query,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { GraphQLResolveInfo } from 'graphql';
 import { buildPagination } from 'src/app.utils';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { PostLoader } from 'src/post/post.loader';
@@ -31,13 +33,16 @@ export class UserResolver {
   }
 
   @Query(() => [User], { name: 'allUsers' })
-  findAll(@Args('pagination') pagination: PaginationInput) {
-    return this.userService.findAll(pagination);
+  findAll(
+    @Args('pagination') pagination: PaginationInput,
+    @Info() info: GraphQLResolveInfo,
+  ) {
+    return this.userService.findAll(pagination, info);
   }
 
   @Query(() => User, { name: 'user' })
-  findOne(@Args('id') id: number) {
-    return this.userService.findOne(id);
+  findOne(@Args('id') id: number, @Info() info: GraphQLResolveInfo) {
+    return this.userService.findOne(id, info);
   }
 
   // Protected queries and mutations
@@ -78,15 +83,18 @@ export class UserResolver {
   async posts(
     @Parent() user: User,
     @Args('pagination') pagination: PaginationInput,
+    @Info() info: GraphQLResolveInfo,
   ) {
     if (!user) return [];
-    const allPosts = await this.postLoader.findPostsByAuthorId.load(user.id);
+
+    const loader = this.postLoader.setInfo(info);
+    const posts = await loader.findPostsByAuthorId.load(user.id);
 
     if (pagination) {
       const { limit, offset } = buildPagination(pagination);
-      return allPosts.slice(offset, offset + limit);
+      return posts.slice(offset, offset + limit);
     }
 
-    return allPosts;
+    return posts;
   }
 }

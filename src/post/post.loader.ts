@@ -1,15 +1,25 @@
 import { Injectable, Scope } from '@nestjs/common';
 import DataLoader from 'dataloader';
+import { GraphQLResolveInfo } from 'graphql';
 import { PostAttributes } from './entities/post.entity';
 import { PostService } from './post.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostLoader {
+  private info: GraphQLResolveInfo;
   constructor(private readonly postService: PostService) {}
+
+  setInfo(info: GraphQLResolveInfo) {
+    this.info = info;
+    return this;
+  }
 
   readonly findPostsByPostId = new DataLoader<number, PostAttributes>(
     async (postIds: readonly number[]) => {
-      const posts = await this.postService.findAllByIds([...postIds]);
+      const posts = await this.postService.findAllByIds(
+        [...postIds],
+        this.info,
+      );
 
       const postsMap = new Map<number, PostAttributes>();
       posts.forEach((post) => {
@@ -30,7 +40,10 @@ export class PostLoader {
   readonly findPostsByAuthorId = new DataLoader<number, PostAttributes[]>(
     async (authorIds: readonly number[]) => {
       // Buscar todos os posts de uma vez
-      const posts = await this.postService.findAllByAuthorIds([...authorIds]);
+      const posts = await this.postService.findAllByAuthorIds(
+        [...authorIds],
+        this.info,
+      );
 
       // Criar um mapa agrupando posts por authorId
       const postsMap = new Map<number, PostAttributes[]>();

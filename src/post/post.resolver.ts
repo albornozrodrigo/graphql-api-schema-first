@@ -1,12 +1,14 @@
 import { UseGuards } from '@nestjs/common';
 import {
   Args,
+  Info,
   Mutation,
   Parent,
   Query,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { GraphQLResolveInfo } from 'graphql';
 import { buildPagination } from 'src/app.utils';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CommentLoader } from 'src/comment/comment.loader';
@@ -28,13 +30,16 @@ export class PostResolver {
   ) {}
 
   @Query(() => [Post], { name: 'allPosts' })
-  findAll(@Args('pagination') pagination: PaginationInput) {
-    return this.postService.findAll(pagination);
+  findAll(
+    @Args('pagination') pagination: PaginationInput,
+    @Info() info: GraphQLResolveInfo,
+  ) {
+    return this.postService.findAll(pagination, info);
   }
 
   @Query(() => Post, { name: 'post' })
-  findOne(@Args('id') id: number) {
-    return this.postService.findOne(id);
+  findOne(@Args('id') id: number, @Info() info: GraphQLResolveInfo) {
+    return this.postService.findOne(id, info);
   }
 
   // Protected queries and mutations
@@ -44,8 +49,9 @@ export class PostResolver {
   findAllByAuthorId(
     @CurrentUser() user: UserAttributes,
     @Args('pagination') pagination: PaginationInput,
+    @Info() info: GraphQLResolveInfo,
   ) {
-    return this.postService.findAllByAuthorId(user.id, pagination);
+    return this.postService.findAllByAuthorId(user.id, pagination, info);
   }
 
   @UseGuards(GqlAuthGuard)
@@ -78,29 +84,31 @@ export class PostResolver {
   // Fields
 
   @ResolveField('author')
-  async author(@Parent() post: Post) {
+  async author(@Parent() post: Post, @Info() info: GraphQLResolveInfo) {
     if (!post) return null;
 
-    return await this.userLoader.findUsersByUserId.load(post.authorId);
+    const loader = this.userLoader.setInfo(info);
+    const user = await loader.findUsersByUserId.load(post.authorId);
+
+    return user;
   }
 
   @ResolveField('comments')
   async comments(
     @Parent() post: Post,
     @Args('pagination') pagination: PaginationInput,
+    @Info() info: GraphQLResolveInfo,
   ) {
     if (!post) return [];
 
-    const allComments = await this.commentLoader.findCommentsByPostId.load(
-      post.id,
-    );
+    const loader = this.commentLoader.setInfo(info);
+    const comments = await loader.findCommentsByPostId.load(post.id);
 
-    // Aplicar paginação se fornecida
     if (pagination) {
       const { limit, offset } = buildPagination(pagination);
-      return allComments.slice(offset, offset + limit);
+      return comments.slice(offset, offset + limit);
     }
 
-    return allComments;
+    return comments;
   }
 }

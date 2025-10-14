@@ -16,6 +16,13 @@ export interface CommentAttributes {
   userId: number;
 }
 
+export const commentDataMap: Record<string, string> = {
+  id: 'id',
+  comment: 'comment',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+};
+
 @Table
 export class Comment extends Model<
   CommentAttributes,

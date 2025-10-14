@@ -1,17 +1,34 @@
 import { Injectable, Scope } from '@nestjs/common';
 import DataLoader from 'dataloader';
+import { GraphQLResolveInfo } from 'graphql';
 import { CommentService } from './comment.service';
 import { CommentAttributes } from './entities/comment.entity';
 
+export interface RequestedFields {
+  comment?: string[];
+  user?: string[];
+  post?: string[];
+}
+
 @Injectable({ scope: Scope.REQUEST })
 export class CommentLoader {
+  private info: GraphQLResolveInfo;
+
   constructor(private readonly commentService: CommentService) {}
+
+  setInfo(info: GraphQLResolveInfo) {
+    this.info = info;
+    return this;
+  }
 
   // Criar o loader para comments por autor
   readonly findCommentsByPostId = new DataLoader<number, CommentAttributes[]>(
     async (postIds: readonly number[]) => {
       // Buscar todos os comments de uma vez
-      const comments = await this.commentService.findAllByPostIds([...postIds]);
+      const comments = await this.commentService.findAllByPostIds(
+        [...postIds],
+        this.info,
+      );
 
       // Criar um mapa agrupando comments por postId
       const commentsMap = new Map<number, CommentAttributes[]>();
@@ -36,7 +53,10 @@ export class CommentLoader {
   readonly findCommentsByUserId = new DataLoader<number, CommentAttributes[]>(
     async (userIds: readonly number[]) => {
       // Buscar todos os comments de uma vez
-      const comments = await this.commentService.findAllByPostIds([...userIds]);
+      const comments = await this.commentService.findAllByPostIds(
+        [...userIds],
+        this.info,
+      );
 
       // Criar um mapa agrupando comments por postId
       const commentsMap = new Map<number, CommentAttributes[]>();

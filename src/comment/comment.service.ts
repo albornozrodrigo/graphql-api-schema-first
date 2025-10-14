@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { buildPagination } from 'src/app.utils';
+import { GraphQLResolveInfo } from 'graphql';
+import { Op } from 'sequelize';
+import { buildPagination, getAttributes } from 'src/app.utils';
 import { PaginationInput } from 'src/common/dto/pagination.input';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
-import { Comment, CommentAttributes } from './entities/comment.entity';
+import {
+  Comment,
+  CommentAttributes,
+  commentDataMap,
+} from './entities/comment.entity';
 
 @Injectable()
 export class CommentService {
@@ -17,15 +23,29 @@ export class CommentService {
     return newComment.get({ plain: true });
   }
 
-  async findAll(pagination: PaginationInput): Promise<CommentAttributes[]> {
+  async findAll(
+    pagination: PaginationInput,
+    info: GraphQLResolveInfo,
+  ): Promise<CommentAttributes[]> {
+    const attributes = getAttributes(info, commentDataMap);
     const paginationData = buildPagination(pagination);
-    const comments = await this.commentModel.findAll(paginationData);
+    const comments = await this.commentModel.findAll({
+      ...paginationData,
+      attributes: [...attributes, 'userId', 'postId'],
+    });
     return comments.map((comment: Comment) => comment.get({ plain: true }));
   }
 
-  async findAllByPostIds(postIds: number[]) {
+  async findAllByPostIds(postIds: number[], info: GraphQLResolveInfo) {
+    const attributes = getAttributes(info, commentDataMap);
+
     const comments = await this.commentModel.findAll({
-      where: { postId: postIds },
+      where: {
+        postId: {
+          [Op.in]: postIds,
+        },
+      },
+      attributes: [...attributes, 'userId', 'postId'],
       order: [['createdAt', 'DESC']],
     });
     return comments.map((comment: Comment) => comment.get({ plain: true }));
@@ -34,25 +54,43 @@ export class CommentService {
   async findAllByPostId(
     postId: number,
     pagination: PaginationInput,
+    info: GraphQLResolveInfo,
   ): Promise<CommentAttributes[]> {
+    const attributes = getAttributes(info, commentDataMap);
     const paginationData = buildPagination(pagination);
     const comments = await this.commentModel.findAll({
       ...paginationData,
       where: { postId },
+      attributes: [...attributes, 'userId', 'postId'],
     });
     return comments.map((comment: Comment) => comment.get({ plain: true }));
   }
 
-  async findOne(id: number): Promise<CommentAttributes> {
-    const comment = await this.commentModel.findByPk(id);
+  async findOne(
+    id: number,
+    info: GraphQLResolveInfo,
+  ): Promise<CommentAttributes> {
+    const attributes = getAttributes(info, commentDataMap);
+    const comment = await this.commentModel.findOne({
+      where: { id },
+      attributes: [...attributes, 'userId', 'postId'],
+    });
+
     if (!comment) {
       throw new Error('Comment not found');
     }
+
     return comment.get({ plain: true });
   }
 
   async update(id: number, updateCommentInput: UpdateCommentInput) {
-    const comment = await this.findOne(id);
+    const currentComment = await this.commentModel.findByPk(id);
+
+    if (!currentComment) {
+      throw new Error('Comment not found');
+    }
+
+    const comment = currentComment.get({ plain: true });
 
     if (comment.userId !== updateCommentInput.userId) {
       throw new Error('You are not authorized to update this comment');
@@ -66,11 +104,18 @@ export class CommentService {
       throw new Error('Comment not found');
     }
 
-    return this.findOne(id);
+    return {
+      ...comment,
+      ...updateCommentInput,
+    };
   }
 
   async remove(commentId: number, userId: number) {
-    const comment = await this.findOne(commentId);
+    const comment = await this.commentModel.findByPk(commentId);
+
+    if (!comment) {
+      throw new Error('Comment not found');
+    }
 
     if (comment.userId !== userId) {
       throw new Error('You are not authorized to delete this comment');

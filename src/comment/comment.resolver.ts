@@ -1,12 +1,14 @@
 import { UseGuards } from '@nestjs/common';
 import {
   Args,
+  Info,
   Mutation,
   Parent,
   Query,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { GraphQLResolveInfo } from 'graphql';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { PaginationInput } from 'src/common/dto/pagination.input';
 import { PostLoader } from 'src/post/post.loader';
@@ -27,21 +29,25 @@ export class CommentResolver {
   ) {}
 
   @Query(() => [Comment], { name: 'allComments' })
-  findAll(@Args('pagination') pagination: PaginationInput) {
-    return this.commentService.findAll(pagination);
+  findAll(
+    @Args('pagination') pagination: PaginationInput,
+    @Info() info: GraphQLResolveInfo,
+  ) {
+    return this.commentService.findAll(pagination, info);
   }
 
   @Query(() => [Comment], { name: 'commentsByPostId' })
   findAllByPostId(
     @Args('postId') postId: number,
     @Args('pagination') pagination: PaginationInput,
+    @Info() info: GraphQLResolveInfo,
   ) {
-    return this.commentService.findAllByPostId(postId, pagination);
+    return this.commentService.findAllByPostId(postId, pagination, info);
   }
 
   @Query(() => Comment, { name: 'comment' })
-  findOne(@Args('id') id: number) {
-    return this.commentService.findOne(id);
+  findOne(@Args('id') id: number, @Info() info: GraphQLResolveInfo) {
+    return this.commentService.findOne(id, info);
   }
 
   // Protected queries and mutations
@@ -76,14 +82,16 @@ export class CommentResolver {
   // Fields
 
   @ResolveField('user')
-  user(@Parent() comment: Comment) {
+  async user(@Parent() comment: Comment, @Info() info: GraphQLResolveInfo) {
     if (!comment) return null;
-    return this.userLoader.findUsersByUserId.load(comment.userId);
+    const loader = this.userLoader.setInfo(info);
+    return await loader.findUsersByUserId.load(comment.userId);
   }
 
   @ResolveField('post')
-  post(@Parent() comment: Comment) {
+  async post(@Parent() comment: Comment, @Info() info: GraphQLResolveInfo) {
     if (!comment) return null;
-    return this.postLoader.findPostsByPostId.load(comment.postId);
+    const loader = this.postLoader.setInfo(info);
+    return await loader.findPostsByPostId.load(comment.postId);
   }
 }

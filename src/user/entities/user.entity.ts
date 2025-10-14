@@ -8,6 +8,14 @@ export interface UserAttributes {
   password: string;
 }
 
+export const userDataMap: Record<string, string> = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+};
+
 @Table
 export class User extends Model<UserAttributes, Omit<UserAttributes, 'id'>> {
   @Column({

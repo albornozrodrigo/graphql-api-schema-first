@@ -32,7 +32,7 @@ export class AuthService {
   }
 
   async getUserById(userId: number) {
-    return await this.userService.findOne(userId);
+    return await this.userService.findOneById(userId);
   }
 
   login(user: Omit<UserAttributes, 'password'>) {

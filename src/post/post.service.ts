@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { buildPagination } from 'src/app.utils';
+import { GraphQLResolveInfo } from 'graphql';
+import { Op } from 'sequelize';
+import { buildPagination, getAttributes } from 'src/app.utils';
 import { PaginationInput } from 'src/common/dto/pagination.input';
 import { CreatePostInput } from './dto/create-post.input';
 import { UpdatePostInput } from './dto/update-post.input';
-import { Post, PostAttributes } from './entities/post.entity';
+import { Post, PostAttributes, postDataMap } from './entities/post.entity';
 
 @Injectable()
 export class PostService {
@@ -25,50 +27,87 @@ export class PostService {
     return newPost.get({ plain: true });
   }
 
-  async findAll(pagination: PaginationInput): Promise<PostAttributes[]> {
+  async findAll(
+    pagination: PaginationInput,
+    info: GraphQLResolveInfo,
+  ): Promise<PostAttributes[]> {
+    const attributes = getAttributes(info, postDataMap);
     const paginationData = buildPagination(pagination);
-    const posts = await this.postModel.findAll(paginationData);
+    const posts = await this.postModel.findAll({
+      ...paginationData,
+      attributes: [...attributes, 'authorId'],
+    });
     return posts.map((post: Post) => post.get({ plain: true }));
   }
 
   async findAllByAuthorId(
     authorId: number,
     pagination: PaginationInput,
+    info: GraphQLResolveInfo,
   ): Promise<PostAttributes[]> {
+    const attributes = getAttributes(info, postDataMap);
     const paginationData = buildPagination(pagination);
     const posts = await this.postModel.findAll({
       ...paginationData,
       where: { authorId },
+      attributes: [...attributes, 'authorId'],
     });
     return posts.map((post: Post) => post.get({ plain: true }));
   }
 
-  async findAllByIds(ids: number[]): Promise<PostAttributes[]> {
+  async findAllByIds(
+    ids: number[],
+    info: GraphQLResolveInfo,
+  ): Promise<PostAttributes[]> {
+    const attributes = getAttributes(info, postDataMap);
     const posts = await this.postModel.findAll({
-      where: { id: ids },
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+      attributes: [...attributes, 'authorId'],
       order: [['createdAt', 'DESC']],
     });
     return posts.map((post: Post) => post.get({ plain: true }));
   }
 
-  async findAllByAuthorIds(authorIds: number[]) {
+  async findAllByAuthorIds(authorIds: number[], info: GraphQLResolveInfo) {
+    const attributes = getAttributes(info, postDataMap);
     const posts = await this.postModel.findAll({
-      where: { authorId: authorIds },
+      where: {
+        authorId: {
+          [Op.in]: authorIds,
+        },
+      },
+      attributes: [...attributes, 'authorId'],
       order: [['createdAt', 'DESC']],
     });
     return posts.map((post: Post) => post.get({ plain: true }));
   }
 
-  async findOne(id: number) {
-    const post = await this.postModel.findByPk(id);
+  async findOne(id: number, info: GraphQLResolveInfo) {
+    const attributes = getAttributes(info, postDataMap);
+    const post = await this.postModel.findOne({
+      where: { id },
+      attributes: [...attributes, 'authorId'],
+    });
+
     if (!post) {
       throw new Error('Post not found');
     }
+
     return post.get({ plain: true });
   }
 
   async update(postId: number, updatePostInput: UpdatePostInput) {
-    const post = await this.findOne(postId);
+    const currentPost = await this.postModel.findByPk(postId);
+
+    if (!currentPost) {
+      throw new Error('Post not found');
+    }
+
+    const post = currentPost.get({ plain: true });
 
     if (post.authorId !== updatePostInput.authorId) {
       throw new Error('You are not authorized to update this post');
@@ -82,11 +121,18 @@ export class PostService {
       throw new Error('Post not found');
     }
 
-    return this.findOne(postId);
+    return {
+      ...post,
+      ...updatePostInput,
+    };
   }
 
   async remove(postId: number, userId: number) {
-    const post = await this.findOne(postId);
+    const post = await this.postModel.findByPk(postId);
+
+    if (!post) {
+      throw new Error('Post not found');
+    }
 
     if (post.authorId !== userId) {
       throw new Error('You are not authorized to delete this post');
