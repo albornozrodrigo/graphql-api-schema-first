@@ -2,12 +2,12 @@
 import { getModelToken } from '@nestjs/sequelize';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphQLResolveInfo } from 'graphql';
-import '../__mock__/pagination';
-import { PaginationInput } from '../common/dto/pagination.input';
-import { CreatePostInput } from './dto/create-post.input';
-import { UpdatePostInput } from './dto/update-post.input';
-import { Post } from './entities/post.entity';
-import { PostService } from './post.service';
+import '../../__mock__/pagination';
+import { PaginationInput } from '../../common/dto/pagination.input';
+import { CreatePostInput } from '../dto/create-post.input';
+import { UpdatePostInput } from '../dto/update-post.input';
+import { Post } from '../entities/post.entity';
+import { PostService } from '../post.service';
 
 describe('PostService', () => {
   let service: PostService;

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphQLResolveInfo } from 'graphql';
-import '../__mock__/pagination';
-import { PostLoader } from './post.loader';
-import { PostService } from './post.service';
+import '../../__mock__/pagination';
+import { PostLoader } from '../post.loader';
+import { PostService } from '../post.service';
 
 describe('PostLoader', () => {
   let loader: PostLoader;

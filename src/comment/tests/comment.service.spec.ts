@@ -2,12 +2,12 @@
 import { getModelToken } from '@nestjs/sequelize';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphQLResolveInfo } from 'graphql';
-import '../__mock__/pagination';
-import { PaginationInput } from '../common/dto/pagination.input';
-import { CommentService } from './comment.service';
-import { CreateCommentInput } from './dto/create-comment.input';
-import { UpdateCommentInput } from './dto/update-comment.input';
-import { Comment } from './entities/comment.entity';
+import '../../__mock__/pagination';
+import { PaginationInput } from '../../common/dto/pagination.input';
+import { CommentService } from '../comment.service';
+import { CreateCommentInput } from '../dto/create-comment.input';
+import { UpdateCommentInput } from '../dto/update-comment.input';
+import { Comment } from '../entities/comment.entity';
 
 describe('CommentService', () => {
   let service: CommentService;

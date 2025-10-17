@@ -2,16 +2,16 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphQLResolveInfo } from 'graphql';
-import '../__mock__/pagination';
-import { CommentLoader } from '../comment/comment.loader';
-import { PaginationInput } from '../common/dto/pagination.input';
-import { UserAttributes } from '../user/entities/user.entity';
-import { UserLoader } from '../user/user.loader';
-import { CreatePostInput } from './dto/create-post.input';
-import { UpdatePostInput } from './dto/update-post.input';
-import { Post } from './entities/post.entity';
-import { PostResolver } from './post.resolver';
-import { PostService } from './post.service';
+import '../../__mock__/pagination';
+import { CommentLoader } from '../../comment/comment.loader';
+import { PaginationInput } from '../../common/dto/pagination.input';
+import { UserAttributes } from '../../user/entities/user.entity';
+import { UserLoader } from '../../user/user.loader';
+import { CreatePostInput } from '../dto/create-post.input';
+import { UpdatePostInput } from '../dto/update-post.input';
+import { Post } from '../entities/post.entity';
+import { PostResolver } from '../post.resolver';
+import { PostService } from '../post.service';
 
 describe('PostResolver', () => {
   let resolver: PostResolver;

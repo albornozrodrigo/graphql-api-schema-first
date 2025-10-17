@@ -2,16 +2,16 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphQLResolveInfo } from 'graphql';
-import '../__mock__/pagination';
-import { PaginationInput } from '../common/dto/pagination.input';
-import { PostLoader } from '../post/post.loader';
-import { UserAttributes } from '../user/entities/user.entity';
-import { UserLoader } from '../user/user.loader';
-import { CommentResolver } from './comment.resolver';
-import { CommentService } from './comment.service';
-import { CreateCommentInput } from './dto/create-comment.input';
-import { UpdateCommentInput } from './dto/update-comment.input';
-import { Comment } from './entities/comment.entity';
+import '../../__mock__/pagination';
+import { PaginationInput } from '../../common/dto/pagination.input';
+import { PostLoader } from '../../post/post.loader';
+import { UserAttributes } from '../../user/entities/user.entity';
+import { UserLoader } from '../../user/user.loader';
+import { CommentResolver } from '../comment.resolver';
+import { CommentService } from '../comment.service';
+import { CreateCommentInput } from '../dto/create-comment.input';
+import { UpdateCommentInput } from '../dto/update-comment.input';
+import { Comment } from '../entities/comment.entity';
 
 describe('CommentResolver', () => {
   let resolver: CommentResolver;

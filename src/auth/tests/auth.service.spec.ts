@@ -2,8 +2,8 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
-import { UserService } from '../user/user.service';
-import { AuthService } from './auth.service';
+import { UserService } from '../../user/user.service';
+import { AuthService } from '../auth.service';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn((plain: string) => `hashed:${plain}`),

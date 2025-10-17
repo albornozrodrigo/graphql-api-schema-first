@@ -2,13 +2,13 @@
 import { getModelToken } from '@nestjs/sequelize';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphQLResolveInfo } from 'graphql';
-import '../__mock__/pagination';
-import { PaginationInput } from '../common/dto/pagination.input';
-import { CreateUserInput } from './dto/create-user.input';
-import { UpdateUserPasswordInput } from './dto/update-user-password.input';
-import { UpdateUserInput } from './dto/update-user.input';
-import { User } from './entities/user.entity';
-import { UserService } from './user.service';
+import '../../__mock__/pagination';
+import { PaginationInput } from '../../common/dto/pagination.input';
+import { CreateUserInput } from '../dto/create-user.input';
+import { UpdateUserPasswordInput } from '../dto/update-user-password.input';
+import { UpdateUserInput } from '../dto/update-user.input';
+import { User } from '../entities/user.entity';
+import { UserService } from '../user.service';
 
 describe('UserService', () => {
   let service: UserService;

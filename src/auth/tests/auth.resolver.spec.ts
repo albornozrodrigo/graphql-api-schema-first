@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthResolver } from './auth.resolver';
-import { AuthService } from './auth.service';
-import { AuthInput } from './dto/auth.input';
+import { AuthResolver } from '../auth.resolver';
+import { AuthService } from '../auth.service';
+import { AuthInput } from '../dto/auth.input';
 
 describe('AuthResolver', () => {
   let resolver: AuthResolver;

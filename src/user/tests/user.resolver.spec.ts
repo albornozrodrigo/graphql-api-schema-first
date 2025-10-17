@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphQLResolveInfo } from 'graphql';
-import { PaginationInput } from '../common/dto/pagination.input';
-import { PostLoader } from '../post/post.loader';
-import { CreateUserInput } from './dto/create-user.input';
-import { UpdateUserPasswordInput } from './dto/update-user-password.input';
-import { UpdateUserInput } from './dto/update-user.input';
-import { User, UserAttributes } from './entities/user.entity';
-import { UserResolver } from './user.resolver';
-import { UserService } from './user.service';
+import { PaginationInput } from '../../common/dto/pagination.input';
+import { PostLoader } from '../../post/post.loader';
+import { CreateUserInput } from '../dto/create-user.input';
+import { UpdateUserPasswordInput } from '../dto/update-user-password.input';
+import { UpdateUserInput } from '../dto/update-user.input';
+import { User, UserAttributes } from '../entities/user.entity';
+import { UserResolver } from '../user.resolver';
+import { UserService } from '../user.service';
 
 describe('UserResolver', () => {
   let resolver: UserResolver;
