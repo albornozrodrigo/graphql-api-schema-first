@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { GraphQLResolveInfo } from 'graphql';
 import { Op } from 'sequelize';
-import { buildPagination, getAttributes } from 'src/app.utils';
-import { PaginationInput } from 'src/common/dto/pagination.input';
+import { buildPagination, getAttributes } from '../app.utils';
+import { PaginationInput } from '../common/dto/pagination.input';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
 import {
@@ -48,6 +48,23 @@ export class CommentService {
       attributes: [...attributes, 'userId', 'postId'],
       order: [['createdAt', 'DESC']],
     });
+
+    return comments.map((comment: Comment) => comment.get({ plain: true }));
+  }
+
+  async findAllByUserIds(userIds: number[], info: GraphQLResolveInfo) {
+    const attributes = getAttributes(info, commentDataMap);
+
+    const comments = await this.commentModel.findAll({
+      where: {
+        userId: {
+          [Op.in]: userIds,
+        },
+      },
+      attributes: [...attributes, 'userId', 'postId'],
+      order: [['createdAt', 'DESC']],
+    });
+
     return comments.map((comment: Comment) => comment.get({ plain: true }));
   }
 

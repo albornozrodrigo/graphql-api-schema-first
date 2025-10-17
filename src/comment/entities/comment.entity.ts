@@ -6,8 +6,8 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
-import { Post } from 'src/post/entities/post.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Post } from '../../post/entities/post.entity';
+import { User } from '../../user/entities/user.entity';
 
 export interface CommentAttributes {
   id: number;

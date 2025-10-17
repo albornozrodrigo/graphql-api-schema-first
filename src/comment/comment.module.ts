@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { Post } from 'src/post/entities/post.entity';
-import { PostLoader } from 'src/post/post.loader';
-import { PostService } from 'src/post/post.service';
-import { User } from 'src/user/entities/user.entity';
-import { UserLoader } from 'src/user/user.loader';
-import { UserService } from 'src/user/user.service';
+import { Post } from '../post/entities/post.entity';
+import { PostLoader } from '../post/post.loader';
+import { PostService } from '../post/post.service';
+import { User } from '../user/entities/user.entity';
+import { UserLoader } from '../user/user.loader';
+import { UserService } from '../user/user.service';
 import { CommentLoader } from './comment.loader';
 import { CommentResolver } from './comment.resolver';
 import { CommentService } from './comment.service';

@@ -9,13 +9,13 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { GraphQLResolveInfo } from 'graphql';
-import { buildPagination } from 'src/app.utils';
-import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
-import { CommentLoader } from 'src/comment/comment.loader';
-import { PaginationInput } from 'src/common/dto/pagination.input';
-import { UserAttributes } from 'src/user/entities/user.entity';
-import { CurrentUser } from 'src/user/user.decorator';
-import { UserLoader } from 'src/user/user.loader';
+import { buildPagination } from '../app.utils';
+import { GqlAuthGuard } from '../auth/gql-auth.guard';
+import { CommentLoader } from '../comment/comment.loader';
+import { PaginationInput } from '../common/dto/pagination.input';
+import { UserAttributes } from '../user/entities/user.entity';
+import { CurrentUser } from '../user/user.decorator';
+import { UserLoader } from '../user/user.loader';
 import { CreatePostInput } from './dto/create-post.input';
 import { UpdatePostInput } from './dto/update-post.input';
 import { Post } from './entities/post.entity';

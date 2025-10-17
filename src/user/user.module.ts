@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { Post } from 'src/post/entities/post.entity';
-import { PostLoader } from 'src/post/post.loader';
-import { PostModule } from 'src/post/post.module';
-import { PostService } from 'src/post/post.service';
+import { Post } from '../post/entities/post.entity';
+import { PostLoader } from '../post/post.loader';
+import { PostModule } from '../post/post.module';
+import { PostService } from '../post/post.service';
 import { User } from './entities/user.entity';
 import { UserLoader } from './user.loader';
 import { UserResolver } from './user.resolver';

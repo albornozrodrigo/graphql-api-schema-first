@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcrypt';
 import { GraphQLResolveInfo } from 'graphql';
 import { Op } from 'sequelize';
-import { buildPagination, getAttributes } from 'src/app.utils';
+import { buildPagination, getAttributes } from '../app.utils';
 import { PaginationInput } from '../common/dto/pagination.input';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserPasswordInput } from './dto/update-user-password.input';
@@ -91,9 +91,11 @@ export class UserService {
 
   async findOneByEmail(email: string): Promise<UserAttributes> {
     const user = await this.userModel.findOne({ where: { email } });
+
     if (!user) {
       throw new Error('User not found');
     }
+
     return user.get({ plain: true });
   }
 

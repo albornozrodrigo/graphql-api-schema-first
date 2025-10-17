@@ -4,16 +4,9 @@ import { GraphQLResolveInfo } from 'graphql';
 import { CommentService } from './comment.service';
 import { CommentAttributes } from './entities/comment.entity';
 
-export interface RequestedFields {
-  comment?: string[];
-  user?: string[];
-  post?: string[];
-}
-
 @Injectable({ scope: Scope.REQUEST })
 export class CommentLoader {
   private info: GraphQLResolveInfo;
-
   constructor(private readonly commentService: CommentService) {}
 
   setInfo(info: GraphQLResolveInfo) {
@@ -53,7 +46,7 @@ export class CommentLoader {
   readonly findCommentsByUserId = new DataLoader<number, CommentAttributes[]>(
     async (userIds: readonly number[]) => {
       // Buscar todos os comments de uma vez
-      const comments = await this.commentService.findAllByPostIds(
+      const comments = await this.commentService.findAllByUserIds(
         [...userIds],
         this.info,
       );
@@ -66,7 +59,7 @@ export class CommentLoader {
 
       // Agrupar comments por postId
       comments.forEach((comment) => {
-        const list = commentsMap.get(comment.postId);
+        const list = commentsMap.get(comment.userId);
         if (list) {
           list.push(comment);
         }
